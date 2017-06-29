@@ -1,5 +1,6 @@
 package com.mereexams.mereexamscalendar;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("Year", year + "");
                 Log.d("Month", month + "");
                 Log.d("Day", dayOfMonth + "");
+                Intent intent = new Intent(getApplicationContext(), CaldroidActivity.class);
+                startActivity(intent);
             }
         });
     }
