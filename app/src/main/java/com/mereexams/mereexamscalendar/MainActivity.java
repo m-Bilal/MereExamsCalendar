@@ -11,8 +11,6 @@ import android.widget.CalendarView;
 
 public class MainActivity extends AppCompatActivity {
 
-    CalendarView calendarView;
-
     Button buttonDefault, buttonCaldroid;
 
     @Override
@@ -23,19 +21,7 @@ public class MainActivity extends AppCompatActivity {
         buttonDefault = (Button) findViewById(R.id.button_default_calendar);
         buttonCaldroid = (Button) findViewById(R.id.button_caldroid);
 
-        calendarView = (CalendarView) findViewById(R.id.calendar);
-
-        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
-            @Override
-            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
-                Log.d("Calendar", "Date changed");
-                Log.d("Year", year + "");
-                Log.d("Month", month + "");
-                Log.d("Day", dayOfMonth + "");
-                Intent intent = new Intent(getApplicationContext(), CaldroidActivity.class);
-                startActivity(intent);
-            }
-        });
+        addActionListeners();
     }
 
     void addActionListeners() {
