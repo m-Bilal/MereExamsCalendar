@@ -33,9 +33,10 @@ public class CaldroidActivity extends AppCompatActivity {
         caldroidFragment.setArguments(args);
 
         Date today = new Date(2017 - 1900, 5, 29);
+        Date tomorrow = new Date(2017 - 1900, 5, 30);
         Log.d("Today", today.toString());
 
-        caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.circle), today);
+        caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.circle), tomorrow);
         caldroidFragment.refreshView();
 
         FragmentTransaction t = getSupportFragmentManager().beginTransaction();
