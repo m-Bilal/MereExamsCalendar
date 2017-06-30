@@ -11,7 +11,7 @@ import android.widget.CalendarView;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button buttonDefault, buttonCaldroid;
+    Button buttonDefault, buttonCaldroid, buttonAgendaCalendarView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
 
         buttonDefault = (Button) findViewById(R.id.button_default_calendar);
         buttonCaldroid = (Button) findViewById(R.id.button_caldroid);
+        buttonAgendaCalendarView = (Button) findViewById(R.id.button_agenda_calendar_view);
 
         addActionListeners();
     }
@@ -37,6 +38,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), CaldroidActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        buttonAgendaCalendarView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), AgendaCalendarViewActivity.class);
                 startActivity(intent);
             }
         });
