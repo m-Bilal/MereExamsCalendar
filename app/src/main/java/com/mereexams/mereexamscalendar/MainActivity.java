@@ -9,14 +9,23 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CalendarView;
 
+import com.mereexams.mereexamscalendar.Helpers.FileIO;
+
+import java.util.HashMap;
+
 public class MainActivity extends AppCompatActivity {
 
     Button buttonDefault, buttonCaldroid, buttonAgendaCalendarView;
+
+    public static HashMap<String, String> vars;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        FileIO fileIO = new FileIO(this);
+        vars = fileIO.getVars();
 
         buttonDefault = (Button) findViewById(R.id.button_default_calendar);
         buttonCaldroid = (Button) findViewById(R.id.button_caldroid);
