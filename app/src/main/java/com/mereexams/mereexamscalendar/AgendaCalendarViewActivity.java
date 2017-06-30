@@ -17,6 +17,7 @@ import com.mereexams.mereexamscalendar.Models.ExamDate;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,6 +31,8 @@ public class AgendaCalendarViewActivity extends AppCompatActivity {
     ProgressDialog dialog;
     public final static String TAG = "AgendaCalendarView";
 
+    List<CalendarEvent> calendarEvents;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,6 +40,13 @@ public class AgendaCalendarViewActivity extends AppCompatActivity {
 
         calendarView = (AgendaCalendarView) findViewById(R.id.agenda_calendar_view);
 
+        //List<CalendarEvent> eventList = new ArrayList<>();
+        //mockList(eventList);
+
+        requestInfoFromServer();
+    }
+
+    void addCalendarEvents() {
         Calendar minDate = Calendar.getInstance();
         Calendar maxDate = Calendar.getInstance();
 
@@ -44,12 +54,9 @@ public class AgendaCalendarViewActivity extends AppCompatActivity {
         minDate.set(Calendar.DAY_OF_MONTH, 1);
         maxDate.add(Calendar.YEAR, 1);
 
-        List<CalendarEvent> eventList = new ArrayList<>();
-        mockList(eventList);
+        Log.i("Events size", calendarEvents.size() + "");
 
-        Log.i("Events size", eventList.size() + "");
-
-        calendarView.init(eventList, minDate, maxDate, Locale.getDefault(), new CalendarPickerController() {
+        calendarView.init(calendarEvents, minDate, maxDate, Locale.getDefault(), new CalendarPickerController() {
             @Override
             public void onDaySelected(DayItem dayItem) {
                 Log.i("Day", dayItem.toString());
@@ -65,8 +72,57 @@ public class AgendaCalendarViewActivity extends AppCompatActivity {
 
             }
         });
+    }
 
-        requestInfoFromServer();
+    private void createEvents(List<ExamDate> examDates) {
+        calendarEvents = new LinkedList<>();
+        for (ExamDate date : examDates) {
+            Calendar startTime = Calendar.getInstance();
+            Calendar endTime = Calendar.getInstance();
+
+            if(date.getRegistationStartConfirmed().equals("") &&
+                    date.getRegistrationStartExpected().equals("")){
+                continue;
+            } else if(date.getRegistrationEndConfirmed().equals("") &&
+                    date.getRegistrationEndExpected().equals("")){
+                continue;
+            } else {
+                if (date.getRegistationStartConfirmed().equals("")) {
+                    Log.d(TAG, "ID: " + date.getId());
+                    Log.d(TAG, "date start exp: " + date.getRegistrationStartExpected());
+                    String[] dateFormat = date.getRegistrationStartExpected().split("/");
+                    startTime.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateFormat[0].trim()));
+                    startTime.set(Calendar.MONTH, Integer.parseInt(dateFormat[1].trim()) - 1);
+                    startTime.set(Calendar.YEAR, 2017);
+                } else {
+                    Log.d(TAG, "ID: " + date.getId());
+                    Log.d(TAG, "date start con: " + date.getRegistationStartConfirmed());
+                    String[] dateFormat = date.getRegistationStartConfirmed().split("/");
+                    startTime.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateFormat[0].trim()));
+                    startTime.set(Calendar.MONTH, Integer.parseInt(dateFormat[1].trim()) - 1);
+                    startTime.set(Calendar.YEAR, 2017);
+                }
+                if (date.getRegistrationEndConfirmed().equals("")) {
+                    Log.d(TAG, "ID: " + date.getId());
+                    Log.d(TAG, "date end exp: " + date.getRegistrationEndExpected());
+                    String[] dateFormat = date.getRegistrationEndExpected().split("/");
+                    endTime.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateFormat[0].trim()));
+                    endTime.set(Calendar.MONTH, Integer.parseInt(dateFormat[1].trim()) - 1);
+                    endTime.set(Calendar.YEAR, 2017);
+                } else {
+                    Log.d(TAG, "ID: " + date.getId());
+                    Log.d(TAG, "date end con: " + date.getRegistrationEndConfirmed());
+                    String[] dateFormat = date.getRegistrationEndConfirmed().split("/");
+                    endTime.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateFormat[0].trim()));
+                    endTime.set(Calendar.MONTH, Integer.parseInt(dateFormat[1].trim()) - 1);
+                    endTime.set(Calendar.YEAR, 2017);
+                }
+                BaseCalendarEvent event1 = new BaseCalendarEvent(date.getName(), "Exam", "MereExams",
+                        ContextCompat.getColor(this, R.color.colorAccent), startTime, endTime, true);
+                calendarEvents.add(event1);
+            }
+        }
+        addCalendarEvents();
     }
 
     private void mockList(List<CalendarEvent> eventList) {
@@ -105,14 +161,15 @@ public class AgendaCalendarViewActivity extends AppCompatActivity {
                 MainActivity.vars.get("token"));
         call.enqueue(new Callback<ExamDate.ExamDatesResponse>() {
             @Override
-            public void onResponse(Call<ExamDate.ExamDatesResponse>call, Response<ExamDate.ExamDatesResponse> response) {
+            public void onResponse(Call<ExamDate.ExamDatesResponse> call, Response<ExamDate.ExamDatesResponse> response) {
                 List<ExamDate> exams = response.body().getExamDates();
+                createEvents(exams);
                 Log.d(TAG, "Number of Exams: " + exams.size());
                 dialog.hide();
             }
 
             @Override
-            public void onFailure(Call<ExamDate.ExamDatesResponse>call, Throwable t) {
+            public void onFailure(Call<ExamDate.ExamDatesResponse> call, Throwable t) {
                 // Log error here since request failed
                 Log.e(TAG, t.toString());
                 dialog.hide();
