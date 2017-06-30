@@ -17,7 +17,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".CaldroidActivity" />
-        <activity android:name=".DefaultCalendarActivity"></activity>
+        <activity android:name=".DefaultCalendarActivity" />
+        <activity android:name=".AgendaCalendarViewActivity"></activity>
     </application>
 
 </manifest>
