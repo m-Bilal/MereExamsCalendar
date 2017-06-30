@@ -25,9 +25,14 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    // Caldroid
+
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.roomorama:caldroid:3.0.1'
     testCompile 'junit:junit:4.12'
+
+    // Caldroid
+    compile 'com.roomorama:caldroid:3.0.1'
+
+    // Agenda Calendar View
+    compile 'com.github.tibolte:agendacalendarview:1.0.4'
 }
