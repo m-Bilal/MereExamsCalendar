@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.mereexams.mereexamscalendar.AgendaCalendarViewActivity">
 
-</android.support.constraint.ConstraintLayout>
+    <com.github.tibolte.agendacalendarview.AgendaCalendarView
+        android:id="@+id/agenda_calendar_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:agendaCurrentDayTextColor="@color/theme_primary"
+        app:calendarColor="@color/theme_primary"
+        app:calendarCurrentDayTextColor="@color/calendar_text_current_day"
+        app:calendarDayTextColor="@color/theme_text_icons"
+        app:calendarHeaderColor="@color/theme_primary_dark"
+        app:calendarPastDayTextColor="@color/theme_light_primary"
+        app:fabColor="@color/theme_accent" />
+
+</FrameLayout>
