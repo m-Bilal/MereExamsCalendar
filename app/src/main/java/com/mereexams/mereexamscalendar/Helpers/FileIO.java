@@ -4,15 +4,10 @@ import android.content.Context;
 import android.util.Log;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Set;
-
-import retrofit2.http.Field;
 
 /**
  * Created by Bilal on 30-Jun-17.

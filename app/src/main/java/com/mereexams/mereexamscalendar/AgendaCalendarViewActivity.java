@@ -1,9 +1,9 @@
 package com.mereexams.mereexamscalendar;
 
-import android.graphics.drawable.Drawable;
+import android.app.ProgressDialog;
+import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 
 import com.github.tibolte.agendacalendarview.AgendaCalendarView;
@@ -11,18 +11,24 @@ import com.github.tibolte.agendacalendarview.CalendarPickerController;
 import com.github.tibolte.agendacalendarview.models.BaseCalendarEvent;
 import com.github.tibolte.agendacalendarview.models.CalendarEvent;
 import com.github.tibolte.agendacalendarview.models.DayItem;
-import com.github.tibolte.agendacalendarview.models.WeekItem;
-import com.mereexams.mereexamscalendar.Models.MyCalendarEvent;
+import com.mereexams.mereexamscalendar.Helpers.ApiClient;
+import com.mereexams.mereexamscalendar.Helpers.ApiInterface;
+import com.mereexams.mereexamscalendar.Models.ExamDate;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AgendaCalendarViewActivity extends AppCompatActivity {
 
     AgendaCalendarView calendarView;
+    ProgressDialog dialog;
+    public final static String TAG = "AgendaCalendarView";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +65,8 @@ public class AgendaCalendarViewActivity extends AppCompatActivity {
 
             }
         });
+
+        requestInfoFromServer();
     }
 
     private void mockList(List<CalendarEvent> eventList) {
@@ -83,6 +91,33 @@ public class AgendaCalendarViewActivity extends AppCompatActivity {
         BaseCalendarEvent event3 = new BaseCalendarEvent("My Own Event", "My description", "Temple of Thought",
                 ContextCompat.getColor(this, R.color.event_color), startTime3, endTime3, true);
         eventList.add(event3);
+    }
+
+    void requestInfoFromServer() {
+        dialog = new ProgressDialog(this);
+        dialog.setMessage("Getting dates");
+        dialog.show();
+
+        ApiInterface apiService =
+                ApiClient.getClient().create(ApiInterface.class);
+
+        Call<ExamDate.ExamDatesResponse> call = apiService.getExamDates(MainActivity.vars.get("api_get_all_exam_dates"),
+                MainActivity.vars.get("token"));
+        call.enqueue(new Callback<ExamDate.ExamDatesResponse>() {
+            @Override
+            public void onResponse(Call<ExamDate.ExamDatesResponse>call, Response<ExamDate.ExamDatesResponse> response) {
+                List<ExamDate> exams = response.body().getExamDates();
+                Log.d(TAG, "Number of Exams: " + exams.size());
+                dialog.hide();
+            }
+
+            @Override
+            public void onFailure(Call<ExamDate.ExamDatesResponse>call, Throwable t) {
+                // Log error here since request failed
+                Log.e(TAG, t.toString());
+                dialog.hide();
+            }
+        });
     }
 
 }
