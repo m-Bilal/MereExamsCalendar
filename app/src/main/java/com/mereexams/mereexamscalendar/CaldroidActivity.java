@@ -27,14 +27,18 @@ public class CaldroidActivity extends AppCompatActivity {
 
     void addCalendar() {
         CaldroidFragment caldroidFragment = new CaldroidFragment();
+
+        // Current Date
+        java.util.Calendar today = java.util.Calendar.getInstance();
+
         Bundle args = new Bundle();
-        args.putInt(CaldroidFragment.MONTH, 6);
-        args.putInt(CaldroidFragment.YEAR, 2017);
+        // Set the month
+        args.putInt(CaldroidFragment.MONTH, today.get(java.util.Calendar.MONTH) + 1);
+        // Set the year
+        args.putInt(CaldroidFragment.YEAR, today.get(java.util.Calendar.YEAR));
         caldroidFragment.setArguments(args);
 
-        Date today = new Date(2017 - 1900, 5, 29);
         Date tomorrow = new Date(2017 - 1900, 5, 30);
-        Log.d("Today", today.toString());
 
         caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.circle), tomorrow);
         caldroidFragment.refreshView();
