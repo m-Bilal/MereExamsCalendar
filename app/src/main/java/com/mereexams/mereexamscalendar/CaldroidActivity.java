@@ -4,8 +4,13 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import com.mereexams.mereexamscalendar.Helpers.ApiClient;
 import com.mereexams.mereexamscalendar.Helpers.ApiInterface;
@@ -28,6 +33,7 @@ public class CaldroidActivity extends AppCompatActivity {
     FrameLayout frameLayout;
     List<Date> eventDates;
     List<ExamDate> examDates;
+    RecyclerView recyclerViewCalendarEvents;
 
     ProgressDialog dialog;
 
@@ -39,6 +45,7 @@ public class CaldroidActivity extends AppCompatActivity {
         eventDates = new ArrayList<>();
 
         frameLayout = (FrameLayout) findViewById(R.id.framelayout_fragment_container);
+        recyclerViewCalendarEvents = (RecyclerView) findViewById(R.id.recyclerview_calendar_events);
 
         requestInfoFromServer();
         addCalendar();
@@ -154,6 +161,45 @@ public class CaldroidActivity extends AppCompatActivity {
                 }
                 currentMonth++;
             }
+        }
+    }
+
+    // Recycler View Adapter
+    public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.MyViewHolder> {
+
+        List<ExamDate> exams;
+
+        public class MyViewHolder extends RecyclerView.ViewHolder {
+            public TextView title, type;
+
+            public MyViewHolder(View view) {
+                super(view);
+                title = (TextView) findViewById(R.id.textview_recyclerview_calendar_events_title);
+                type = (TextView) findViewById(R.id.textview_recyclerview_calendar_events_type);
+            }
+        }
+
+        public MyRecyclerViewAdapter(List<ExamDate> examDates) {
+            exams = examDates;
+        }
+
+        @Override
+        public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.recyclerview_calendar_events_layout, parent, false);
+
+            return new MyViewHolder(itemView);
+        }
+
+        @Override
+        public void onBindViewHolder(MyViewHolder holder, int position) {
+            holder.title.setText(" *Set your text here* ");
+            holder.type.setText(" *Set your text here* ");
+        }
+
+        @Override
+        public int getItemCount() {
+            return exams.size();
         }
     }
 }
