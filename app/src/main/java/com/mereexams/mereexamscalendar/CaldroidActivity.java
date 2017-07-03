@@ -18,7 +18,7 @@ public class CaldroidActivity extends AppCompatActivity {
     FrameLayout frameLayout;
 
     private final short[] DAYS_IN_MONTHS = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    private final short[] DAYS_IN_MOMTH_LEAP_YEAR = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    private final short[] DAYS_IN_MONTH_LEAP_YEAR = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
     private final static String TAG = "CaldroidActivity";
 
@@ -82,7 +82,7 @@ public class CaldroidActivity extends AppCompatActivity {
         // Iterating over years
         for (int currentYear = startYear; currentYear <= endYear; currentYear++){
             short[] noOfDays;
-            if(currentYear % 4 == 0) noOfDays = DAYS_IN_MOMTH_LEAP_YEAR;
+            if(currentYear % 4 == 0) noOfDays = DAYS_IN_MONTH_LEAP_YEAR;
             else noOfDays = DAYS_IN_MONTHS;
 
             // Iterating over months
