@@ -1,9 +1,8 @@
 package com.mereexams.mereexamscalendar;
 
-import android.icu.util.Calendar;
+import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.widget.FrameLayout;
 
@@ -15,13 +14,10 @@ import java.util.List;
 
 public class CaldroidActivity extends AppCompatActivity {
 
-    FrameLayout frameLayout;
-
+    private final static String TAG = "CaldroidActivity";
     private final short[] DAYS_IN_MONTHS = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     private final short[] DAYS_IN_MONTH_LEAP_YEAR = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-    private final static String TAG = "CaldroidActivity";
-
+    FrameLayout frameLayout;
     List<Date> eventDates;
 
     @Override
@@ -80,9 +76,9 @@ public class CaldroidActivity extends AppCompatActivity {
         int endYear = Integer.parseInt(endDateStr[2].trim());
 
         // Iterating over years
-        for (int currentYear = startYear; currentYear <= endYear; currentYear++){
+        for (int currentYear = startYear; currentYear <= endYear; currentYear++) {
             short[] noOfDays;
-            if(currentYear % 4 == 0) noOfDays = DAYS_IN_MONTH_LEAP_YEAR;
+            if (currentYear % 4 == 0) noOfDays = DAYS_IN_MONTH_LEAP_YEAR;
             else noOfDays = DAYS_IN_MONTHS;
 
             // Iterating over months
