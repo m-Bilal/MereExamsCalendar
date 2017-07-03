@@ -1,16 +1,24 @@
 package com.mereexams.mereexamscalendar;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.FrameLayout;
 
+import com.mereexams.mereexamscalendar.Helpers.ApiClient;
+import com.mereexams.mereexamscalendar.Helpers.ApiInterface;
+import com.mereexams.mereexamscalendar.Models.ExamDate;
 import com.roomorama.caldroid.CaldroidFragment;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class CaldroidActivity extends AppCompatActivity {
 
@@ -19,6 +27,9 @@ public class CaldroidActivity extends AppCompatActivity {
     private final short[] DAYS_IN_MONTH_LEAP_YEAR = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     FrameLayout frameLayout;
     List<Date> eventDates;
+    List<ExamDate> examDates;
+
+    ProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,8 +40,8 @@ public class CaldroidActivity extends AppCompatActivity {
 
         frameLayout = (FrameLayout) findViewById(R.id.framelayout_fragment_container);
 
+        requestInfoFromServer();
         addCalendar();
-
         datesInRange();
     }
 
@@ -55,6 +66,33 @@ public class CaldroidActivity extends AppCompatActivity {
         FragmentTransaction t = getSupportFragmentManager().beginTransaction();
         t.replace(R.id.framelayout_fragment_container, caldroidFragment);
         t.commit();
+    }
+
+    void requestInfoFromServer() {
+        dialog = new ProgressDialog(this);
+        dialog.setMessage("Getting dates");
+        dialog.show();
+
+        ApiInterface apiService =
+                ApiClient.getClient().create(ApiInterface.class);
+
+        Call<ExamDate.ExamDatesResponse> call = apiService.getExamDates(MainActivity.vars.get("api_get_all_exam_dates"),
+                MainActivity.vars.get("token"));
+        call.enqueue(new Callback<ExamDate.ExamDatesResponse>() {
+            @Override
+            public void onResponse(Call<ExamDate.ExamDatesResponse> call, Response<ExamDate.ExamDatesResponse> response) {
+                examDates = response.body().getExamDates();
+                Log.d(TAG, "Number of Exams: " + examDates.size());
+                dialog.hide();
+            }
+
+            @Override
+            public void onFailure(Call<ExamDate.ExamDatesResponse> call, Throwable t) {
+                // Log error here since request failed
+                Log.e(TAG, t.toString());
+                dialog.hide();
+            }
+        });
     }
 
     void datesInRange() {
