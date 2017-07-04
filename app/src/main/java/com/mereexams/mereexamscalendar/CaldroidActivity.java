@@ -13,12 +13,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mereexams.mereexamscalendar.Helpers.ApiClient;
 import com.mereexams.mereexamscalendar.Helpers.ApiInterface;
 import com.mereexams.mereexamscalendar.Models.ExamDate;
 import com.mereexams.mereexamscalendar.Models.MyCalendarEvent;
 import com.roomorama.caldroid.CaldroidFragment;
+import com.roomorama.caldroid.CaldroidListener;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,6 +42,7 @@ public class CaldroidActivity extends AppCompatActivity {
     MyRecyclerViewAdapter adapter;
     ProgressDialog dialog;
     CaldroidFragment caldroidFragment;
+    TextView textViewSelectedDate;
 
     // A list that has the dates of all the allEvents, no filter used
     List<Date> allDates;
@@ -48,6 +51,8 @@ public class CaldroidActivity extends AppCompatActivity {
     // HashMap to map allEvents to their dates,
     // the list(second arg) contains the allEvents associated with the date
     HashMap<Date, List<MyCalendarEvent>> allEvents;
+
+    Date lateDateSelected;
 
 
     @Override
@@ -58,16 +63,12 @@ public class CaldroidActivity extends AppCompatActivity {
         allDates = new ArrayList<>();
         restDateResponse = new ArrayList<>();
         allEvents = new HashMap<>();
+        lateDateSelected = null;
 
         frameLayout = (FrameLayout) findViewById(R.id.framelayout_fragment_container);
         recyclerViewCalendarEvents = (RecyclerView) findViewById(R.id.recyclerview_calendar_events);
+        textViewSelectedDate = (TextView) findViewById(R.id.textview_selected_date);
         caldroidFragment = new CaldroidFragment();
-        adapter = new MyRecyclerViewAdapter(restDateResponse);
-
-        // Recycler view
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerViewCalendarEvents.setLayoutManager(layoutManager);
-        recyclerViewCalendarEvents.setAdapter(adapter);
 
         requestInfoFromServer();
         addCalendar();
@@ -88,12 +89,43 @@ public class CaldroidActivity extends AppCompatActivity {
 
         Date tomorrow = new Date(2017 - 1900, 5, 30);
 
-        caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.circle), tomorrow);
-        caldroidFragment.refreshView();
+        caldroidFragment.setCaldroidListener(new CaldroidListener() {
+            @Override
+            public void onSelectDate(Date date, View view) {
+                textViewSelectedDate.setText(date.toString());
+                if(lateDateSelected != null){
+                    caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.circle), lateDateSelected);
+                }
+                caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.date_selected), date);
+                lateDateSelected = date;
+                caldroidFragment.refreshView();
+                attachEvents(date);
+            }
+        });
 
         FragmentTransaction t = getSupportFragmentManager().beginTransaction();
         t.replace(R.id.framelayout_fragment_container, caldroidFragment);
         t.commit();
+    }
+
+    void attachEvents(Date date) {
+        if(allEvents.get(date) != null){
+            adapter = new MyRecyclerViewAdapter(allEvents.get(date));
+
+            // Recycler view
+            RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+            recyclerViewCalendarEvents.setLayoutManager(layoutManager);
+            recyclerViewCalendarEvents.setAdapter(adapter);
+        } else {
+            List<MyCalendarEvent> list = new ArrayList<>();
+            adapter = new MyRecyclerViewAdapter(list);
+
+            // Recycler view
+            RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+            recyclerViewCalendarEvents.setLayoutManager(layoutManager);
+            recyclerViewCalendarEvents.setAdapter(adapter);
+        }
+
     }
 
     void requestInfoFromServer() {
@@ -120,6 +152,7 @@ public class CaldroidActivity extends AppCompatActivity {
             public void onFailure(Call<ExamDate.ExamDatesResponse> call, Throwable t) {
                 // Log error here since request failed
                 Log.e(TAG, t.toString());
+                Toast.makeText(getApplicationContext(),"Not connected", Toast.LENGTH_SHORT).show();
                 dialog.hide();
             }
         });
@@ -277,9 +310,9 @@ public class CaldroidActivity extends AppCompatActivity {
     // Recycler View Adapter
     public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.MyViewHolder> {
 
-        List<ExamDate> exams;
+        List<MyCalendarEvent> exams;
 
-        public MyRecyclerViewAdapter(List<ExamDate> examDates) {
+        public MyRecyclerViewAdapter(List<MyCalendarEvent> examDates) {
             exams = examDates;
         }
 
@@ -296,8 +329,9 @@ public class CaldroidActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
             Log.d("Recycler view", "On Bind Postion : " + position);
-            holder.title.setText("Title Start : " + exams.get(position).getRegistrationStartExpected());
-            holder.type.setText("Title End : " + exams.get(position).getRegistrationEndExpected());
+            holder.title.setText("Title Start : " + exams.get(position).getTitle());
+            holder.type.setText("Title End : " + exams.get(position).getEventType());
+            holder.dateType.setText(exams.get(position).getDateType());
         }
 
         @Override
@@ -307,12 +341,13 @@ public class CaldroidActivity extends AppCompatActivity {
         }
 
         public class MyViewHolder extends RecyclerView.ViewHolder {
-            public TextView title, type;
+            public TextView title, type, dateType;
 
             public MyViewHolder(View view) {
                 super(view);
                 title = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_title);
                 type = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_type);
+                dateType = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_date_type);
             }
         }
     }
