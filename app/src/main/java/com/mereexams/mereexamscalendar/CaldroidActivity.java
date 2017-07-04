@@ -329,8 +329,8 @@ public class CaldroidActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
             Log.d("Recycler view", "On Bind Postion : " + position);
-            holder.title.setText("Title Start : " + exams.get(position).getTitle());
-            holder.type.setText("Title End : " + exams.get(position).getEventType());
+            holder.title.setText(exams.get(position).getTitle());
+            holder.type.setText(exams.get(position).getEventType());
             holder.dateType.setText(exams.get(position).getDateType());
         }
 
