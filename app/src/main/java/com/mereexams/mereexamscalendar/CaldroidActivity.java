@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -34,6 +35,7 @@ public class CaldroidActivity extends AppCompatActivity {
     List<Date> eventDates;
     List<ExamDate> examDates;
     RecyclerView recyclerViewCalendarEvents;
+    MyRecyclerViewAdapter adapter;
 
     ProgressDialog dialog;
 
@@ -43,13 +45,15 @@ public class CaldroidActivity extends AppCompatActivity {
         setContentView(R.layout.activity_caldroid);
 
         eventDates = new ArrayList<>();
+        examDates = new ArrayList<>();
 
         frameLayout = (FrameLayout) findViewById(R.id.framelayout_fragment_container);
         recyclerViewCalendarEvents = (RecyclerView) findViewById(R.id.recyclerview_calendar_events);
 
+
         requestInfoFromServer();
         addCalendar();
-        datesInRange();
+        //datesInRange();
     }
 
     void addCalendar() {
@@ -88,7 +92,13 @@ public class CaldroidActivity extends AppCompatActivity {
         call.enqueue(new Callback<ExamDate.ExamDatesResponse>() {
             @Override
             public void onResponse(Call<ExamDate.ExamDatesResponse> call, Response<ExamDate.ExamDatesResponse> response) {
+                examDates.clear();
                 examDates = response.body().getExamDates();
+                adapter = new MyRecyclerViewAdapter(examDates);
+
+                RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+                recyclerViewCalendarEvents.setLayoutManager(layoutManager);
+                recyclerViewCalendarEvents.setAdapter(adapter);
                 Log.d(TAG, "Number of Exams: " + examDates.size());
                 dialog.hide();
             }
@@ -174,8 +184,8 @@ public class CaldroidActivity extends AppCompatActivity {
 
             public MyViewHolder(View view) {
                 super(view);
-                title = (TextView) findViewById(R.id.textview_recyclerview_calendar_events_title);
-                type = (TextView) findViewById(R.id.textview_recyclerview_calendar_events_type);
+                title = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_title);
+                type = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_type);
             }
         }
 
@@ -188,17 +198,21 @@ public class CaldroidActivity extends AppCompatActivity {
             View itemView = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.recyclerview_calendar_events_layout, parent, false);
 
+            Log.d("Recycler View", "Created");
+
             return new MyViewHolder(itemView);
         }
 
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
-            holder.title.setText(" *Set your text here* ");
-            holder.type.setText(" *Set your text here* ");
+            Log.d("Recycler view", "On Bind Postion : " + position);
+            holder.title.setText("Title Start : " + exams.get(position).getRegistrationStartExpected());
+            holder.type.setText("Title End : " + exams.get(position).getRegistrationEndExpected());
         }
 
         @Override
         public int getItemCount() {
+            Log.d("recycler view", "size : " + exams.size());
             return exams.size();
         }
     }
