@@ -15,11 +15,19 @@
         android:layout_height="wrap_content" >
     </FrameLayout>
 
+    <TextView
+        android:id="@+id/textview_selected_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:textSize="15sp"
+        android:textAlignment="center"
+        android:text="Selected Date"/>
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerview_calendar_events"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#324">
+        android:layout_height="match_parent">
     </android.support.v7.widget.RecyclerView>
 </LinearLayout>
 
