@@ -12,26 +12,48 @@ public class ExamDate {
 
     @SerializedName("id")
     int id;
+
     @SerializedName("name")
     String name;
+
     @SerializedName("disciplineid")
     int disciplineId;
+
     @SerializedName("regstartcon")
-    String registationStartConfirmed;
+    String registrationStartConfirmed;
+
     @SerializedName("regendcon")
     String registrationEndConfirmed;
-    @SerializedName("admitcardcon")
-    String admitCardStartConfirmed;
-    @SerializedName("exdatecon")
-    String admitCardEndConfirmed;
-    @SerializedName("rescon")
-    String resultConfirmed;
+
     @SerializedName("regstartexpdt")
     String registrationStartExpected;
+
     @SerializedName("regendexpdt")
     String registrationEndExpected;
+
+    @SerializedName("admitcardcon")
+    String admitCardConfirmed;
+
+    @SerializedName("admitcardexpdt")
+    String admitCardExpected;
+
+    @SerializedName("rescon")
+    String resultConfirmed;
+
     @SerializedName("resexpdt")
     String resultExpected;
+
+    @SerializedName("exdatecon")
+    String examDateConfirmed;
+
+    public String getAdmitCardExpected() {
+        return admitCardExpected;
+    }
+
+    public void setAdmitCardExpected(String admitCardExpected) {
+        this.admitCardExpected = admitCardExpected;
+    }
+
     @SerializedName("exdatexpdt")
     String ExamExpected;
 
@@ -67,12 +89,12 @@ public class ExamDate {
         this.disciplineId = disciplineId;
     }
 
-    public String getRegistationStartConfirmed() {
-        return registationStartConfirmed;
+    public String getRegistrationStartConfirmed() {
+        return registrationStartConfirmed;
     }
 
-    public void setRegistationStartConfirmed(String registationStartConfirmed) {
-        this.registationStartConfirmed = registationStartConfirmed;
+    public void setRegistrationStartConfirmed(String registrationStartConfirmed) {
+        this.registrationStartConfirmed = registrationStartConfirmed;
     }
 
     public String getRegistrationEndConfirmed() {
@@ -83,20 +105,20 @@ public class ExamDate {
         this.registrationEndConfirmed = registrationEndConfirmed;
     }
 
-    public String getAdmitCardStartConfirmed() {
-        return admitCardStartConfirmed;
+    public String getAdmitCardConfirmed() {
+        return admitCardConfirmed;
     }
 
-    public void setAdmitCardStartConfirmed(String admitCardStartConfirmed) {
-        this.admitCardStartConfirmed = admitCardStartConfirmed;
+    public void setAdmitCardConfirmed(String admitCardConfirmed) {
+        this.admitCardConfirmed = admitCardConfirmed;
     }
 
-    public String getAdmitCardEndConfirmed() {
-        return admitCardEndConfirmed;
+    public String getExamDateConfirmed() {
+        return examDateConfirmed;
     }
 
-    public void setAdmitCardEndConfirmed(String admitCardEndConfirmed) {
-        this.admitCardEndConfirmed = admitCardEndConfirmed;
+    public void setExamDateConfirmed(String examDateConfirmed) {
+        this.examDateConfirmed = examDateConfirmed;
     }
 
     public String getResultConfirmed() {

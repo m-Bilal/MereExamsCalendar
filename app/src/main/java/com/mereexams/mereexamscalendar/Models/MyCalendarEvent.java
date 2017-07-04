@@ -1,33 +1,33 @@
 package com.mereexams.mereexamscalendar.Models;
 
-import com.github.tibolte.agendacalendarview.models.CalendarEvent;
-import com.github.tibolte.agendacalendarview.models.DayItem;
-import com.github.tibolte.agendacalendarview.models.WeekItem;
-
-import java.util.Calendar;
-
 /**
  * Created by Bilal on 30-Jun-17.
  */
 
 public class MyCalendarEvent {
 
-    private String startDate;
-    private String endDate;
-    private String title;
-    private String type;
-    private int id;
-    private int disciplineId;
-    private short eventType;
-    private short dateType;
-
-
-    private final String[] EVENT_TYPE = {"Registration",
+    private static final String[] EVENT_TYPE = {"Registration",
             "Admit Card",
             "Exam",
             "Result"};
 
-    private final String[] DATE_TYPE = {"Expected", "Confirmed"};
+    private static final String[] DATE_TYPE = {"Expected", "Confirmed"};
+
+    public static final short EVENT_TYPE_REGISTRATION = 0;
+    public static final short EVENT_TYPE_ADMIT_CARD = 1;
+    public static final short EVENT_TYPE_EXAM = 2;
+    public static final short EVENT_TYPE_RESULT = 3;
+
+    public static final short DATE_TYPE_EXPECTED = 0;
+    public static final short DATE_TYPE_CONFIRMED = 1;
+
+    private String startDate;
+    private String endDate;
+    private String title;
+    private int id;
+    private int disciplineId;
+    private short eventType;
+    private short dateType;
 
     public String getStartDate() {
         return startDate;
@@ -53,14 +53,6 @@ public class MyCalendarEvent {
         this.title = title;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public int getId() {
         return id;
     }
@@ -77,16 +69,16 @@ public class MyCalendarEvent {
         this.disciplineId = disciplineId;
     }
 
-    public short getEventType() {
-        return eventType;
+    public String getEventType() {
+        return EVENT_TYPE[eventType];
     }
 
     public void setEventType(short eventType) {
         this.eventType = eventType;
     }
 
-    public short getDateType() {
-        return dateType;
+    public String getDateType() {
+        return DATE_TYPE[dateType];
     }
 
     public void setDateType(short dateType) {

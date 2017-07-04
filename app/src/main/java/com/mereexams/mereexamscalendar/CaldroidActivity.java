@@ -1,6 +1,7 @@
 package com.mereexams.mereexamscalendar;
 
 import android.app.ProgressDialog;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -16,11 +17,14 @@ import android.widget.TextView;
 import com.mereexams.mereexamscalendar.Helpers.ApiClient;
 import com.mereexams.mereexamscalendar.Helpers.ApiInterface;
 import com.mereexams.mereexamscalendar.Models.ExamDate;
+import com.mereexams.mereexamscalendar.Models.MyCalendarEvent;
 import com.roomorama.caldroid.CaldroidFragment;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -32,33 +36,46 @@ public class CaldroidActivity extends AppCompatActivity {
     private final short[] DAYS_IN_MONTHS = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     private final short[] DAYS_IN_MONTH_LEAP_YEAR = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     FrameLayout frameLayout;
-    List<Date> eventDates;
-    List<ExamDate> examDates;
     RecyclerView recyclerViewCalendarEvents;
     MyRecyclerViewAdapter adapter;
-
     ProgressDialog dialog;
+    CaldroidFragment caldroidFragment;
+
+    // A list that has the dates of all the allEvents, no filter used
+    List<Date> allDates;
+    // List to have all the parsed objects returned by the server
+    List<ExamDate> restDateResponse;
+    // HashMap to map allEvents to their dates,
+    // the list(second arg) contains the allEvents associated with the date
+    HashMap<Date, List<MyCalendarEvent>> allEvents;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_caldroid);
 
-        eventDates = new ArrayList<>();
-        examDates = new ArrayList<>();
+        allDates = new ArrayList<>();
+        restDateResponse = new ArrayList<>();
+        allEvents = new HashMap<>();
 
         frameLayout = (FrameLayout) findViewById(R.id.framelayout_fragment_container);
         recyclerViewCalendarEvents = (RecyclerView) findViewById(R.id.recyclerview_calendar_events);
+        caldroidFragment = new CaldroidFragment();
+        adapter = new MyRecyclerViewAdapter(restDateResponse);
 
+        // Recycler view
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+        recyclerViewCalendarEvents.setLayoutManager(layoutManager);
+        recyclerViewCalendarEvents.setAdapter(adapter);
 
         requestInfoFromServer();
         addCalendar();
         //datesInRange();
     }
 
+    // Add the calendar fragment to the Activity with today's date as the arg
     void addCalendar() {
-        CaldroidFragment caldroidFragment = new CaldroidFragment();
-
         // Current Date
         java.util.Calendar today = java.util.Calendar.getInstance();
 
@@ -92,14 +109,10 @@ public class CaldroidActivity extends AppCompatActivity {
         call.enqueue(new Callback<ExamDate.ExamDatesResponse>() {
             @Override
             public void onResponse(Call<ExamDate.ExamDatesResponse> call, Response<ExamDate.ExamDatesResponse> response) {
-                examDates.clear();
-                examDates = response.body().getExamDates();
-                adapter = new MyRecyclerViewAdapter(examDates);
-
-                RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
-                recyclerViewCalendarEvents.setLayoutManager(layoutManager);
-                recyclerViewCalendarEvents.setAdapter(adapter);
-                Log.d(TAG, "Number of Exams: " + examDates.size());
+                restDateResponse.clear();
+                restDateResponse = response.body().getExamDates();
+                extractEvents();
+                Log.d(TAG, "Number of Exams: " + restDateResponse.size());
                 dialog.hide();
             }
 
@@ -112,11 +125,96 @@ public class CaldroidActivity extends AppCompatActivity {
         });
     }
 
-    void datesInRange() {
-        // TODO: Modify the method signature to accept startDate and endDate as parameters
-        // Dummy start and end dates
-        String[] startDateStr = "15/05/2015".split("/");
-        String[] endDateStr = "14/07/2017".split("/");
+    void addEvent(List<Date> dates, ExamDate event, short eventType, short dateType) {
+        MyCalendarEvent myEvent = new MyCalendarEvent();
+        myEvent.setTitle(event.getName());
+        myEvent.setEventType(eventType);
+        myEvent.setDateType(dateType);
+        for (Date d : dates) {
+            if (allEvents.get(d) == null) {
+                List<MyCalendarEvent> list = new ArrayList<>();
+                list.add(myEvent);
+                allEvents.put(d, list);
+            } else {
+                List<MyCalendarEvent> list = allEvents.get(d);
+                list.add(myEvent);
+                allEvents.put(d, list);
+            }
+        }
+    }
+
+    void extractEvents() {
+        for (ExamDate i : restDateResponse) {
+            List<Date> dates;
+            // for registration date
+            if (i.getRegistrationStartConfirmed().equals("") || i.getRegistrationEndConfirmed().equals("")) {
+                if (i.getRegistrationStartExpected().equals("") || i.getRegistrationEndExpected().equals("")) {
+                    continue;
+                } else {
+                    dates = datesInRange(i.getRegistrationStartExpected(), i.getRegistrationEndExpected());
+                    addEvent(dates, i, MyCalendarEvent.EVENT_TYPE_REGISTRATION, MyCalendarEvent.DATE_TYPE_EXPECTED);
+                }
+            } else {
+                dates = datesInRange(i.getRegistrationStartConfirmed(), i.getRegistrationEndConfirmed());
+                addEvent(dates, i, MyCalendarEvent.EVENT_TYPE_REGISTRATION, MyCalendarEvent.DATE_TYPE_CONFIRMED);
+            }
+
+            // for admit card date
+            if (i.getAdmitCardConfirmed().equals("")) {
+                if (i.getAdmitCardExpected().equals("")) {
+                    continue;
+                } else {
+                    dates = datesInRange(i.getAdmitCardExpected(), i.getAdmitCardExpected());
+                    addEvent(dates, i, MyCalendarEvent.EVENT_TYPE_ADMIT_CARD, MyCalendarEvent.DATE_TYPE_EXPECTED);
+                }
+            } else {
+                dates = datesInRange(i.getAdmitCardConfirmed(), i.getAdmitCardConfirmed());
+                addEvent(dates, i, MyCalendarEvent.EVENT_TYPE_ADMIT_CARD, MyCalendarEvent.DATE_TYPE_CONFIRMED);
+            }
+
+            // for exam date
+            if (i.getExamDateConfirmed().equals("")) {
+                if (i.getExamExpected().equals("")) {
+                    continue;
+                } else {
+                    dates = datesInRange(i.getExamExpected(), i.getExamExpected());
+                    addEvent(dates, i, MyCalendarEvent.EVENT_TYPE_EXAM, MyCalendarEvent.DATE_TYPE_EXPECTED);
+                }
+            } else {
+                dates = datesInRange(i.getExamDateConfirmed(), i.getExamDateConfirmed());
+                addEvent(dates, i, MyCalendarEvent.EVENT_TYPE_EXAM, MyCalendarEvent.DATE_TYPE_CONFIRMED);
+            }
+
+            // for result date
+            if (i.getResultConfirmed().equals("")) {
+                if (i.getResultExpected().equals("")) {
+                    continue;
+                } else {
+                    dates = datesInRange(i.getResultExpected(), i.getResultExpected());
+                    addEvent(dates, i, MyCalendarEvent.EVENT_TYPE_RESULT, MyCalendarEvent.DATE_TYPE_EXPECTED);
+                }
+            } else {
+                dates = datesInRange(i.getResultConfirmed(), i.getResultConfirmed());
+                addEvent(dates, i, MyCalendarEvent.EVENT_TYPE_RESULT, MyCalendarEvent.DATE_TYPE_CONFIRMED);
+            }
+        }
+        caldroidFragment.setBackgroundDrawableForDates(createDrawables());
+        caldroidFragment.refreshView();
+    }
+
+    Map<Date, Drawable> createDrawables() {
+        Map<Date, Drawable> dateDrawableMap = new HashMap<>();
+        for(Date date : allDates) {
+            dateDrawableMap.put(date, getResources().getDrawable(R.drawable.circle));
+        }
+        return dateDrawableMap;
+    }
+
+    List<Date> datesInRange(String startDate, String endDate) {
+        String[] startDateStr = startDate.split("/");
+        String[] endDateStr = endDate.split("/");
+
+        List<Date> datesOfEvent = new ArrayList<>();
 
         // Starting date
         short startDay = Short.parseShort(startDateStr[0].trim());
@@ -167,27 +265,19 @@ public class CaldroidActivity extends AppCompatActivity {
                 while (currentDay <= lastDay) {
                     Date currentDate = new Date(currentYear - 1900, currentMonth, currentDay++);
                     Log.i(TAG, "Added date: " + currentDate.toString());
-                    eventDates.add(currentDate);
+                    allDates.add(currentDate);
+                    datesOfEvent.add(currentDate);
                 }
                 currentMonth++;
             }
         }
+        return datesOfEvent;
     }
 
     // Recycler View Adapter
     public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.MyViewHolder> {
 
         List<ExamDate> exams;
-
-        public class MyViewHolder extends RecyclerView.ViewHolder {
-            public TextView title, type;
-
-            public MyViewHolder(View view) {
-                super(view);
-                title = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_title);
-                type = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_type);
-            }
-        }
 
         public MyRecyclerViewAdapter(List<ExamDate> examDates) {
             exams = examDates;
@@ -214,6 +304,16 @@ public class CaldroidActivity extends AppCompatActivity {
         public int getItemCount() {
             Log.d("recycler view", "size : " + exams.size());
             return exams.size();
+        }
+
+        public class MyViewHolder extends RecyclerView.ViewHolder {
+            public TextView title, type;
+
+            public MyViewHolder(View view) {
+                super(view);
+                title = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_title);
+                type = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_type);
+            }
         }
     }
 }

@@ -15,7 +15,6 @@ import com.mereexams.mereexamscalendar.Helpers.ApiClient;
 import com.mereexams.mereexamscalendar.Helpers.ApiInterface;
 import com.mereexams.mereexamscalendar.Models.ExamDate;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
@@ -80,14 +79,14 @@ public class AgendaCalendarViewActivity extends AppCompatActivity {
             Calendar startTime = Calendar.getInstance();
             Calendar endTime = Calendar.getInstance();
 
-            if(date.getRegistationStartConfirmed().equals("") &&
+            if(date.getRegistrationStartConfirmed().equals("") &&
                     date.getRegistrationStartExpected().equals("")){
                 continue;
             } else if(date.getRegistrationEndConfirmed().equals("") &&
                     date.getRegistrationEndExpected().equals("")){
                 continue;
             } else {
-                if (date.getRegistationStartConfirmed().equals("")) {
+                if (date.getRegistrationStartConfirmed().equals("")) {
                     Log.d(TAG, "ID: " + date.getId());
                     Log.d(TAG, "date start exp: " + date.getRegistrationStartExpected());
                     String[] dateFormat = date.getRegistrationStartExpected().split("/");
@@ -96,8 +95,8 @@ public class AgendaCalendarViewActivity extends AppCompatActivity {
                     startTime.set(Calendar.YEAR, 2017);
                 } else {
                     Log.d(TAG, "ID: " + date.getId());
-                    Log.d(TAG, "date start con: " + date.getRegistationStartConfirmed());
-                    String[] dateFormat = date.getRegistationStartConfirmed().split("/");
+                    Log.d(TAG, "date start con: " + date.getRegistrationStartConfirmed());
+                    String[] dateFormat = date.getRegistrationStartConfirmed().split("/");
                     startTime.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateFormat[0].trim()));
                     startTime.set(Calendar.MONTH, Integer.parseInt(dateFormat[1].trim()) - 1);
                     startTime.set(Calendar.YEAR, 2017);
