@@ -10,83 +10,91 @@ import java.util.Calendar;
  * Created by Bilal on 30-Jun-17.
  */
 
-public class MyCalendarEvent implements CalendarEvent {
+public class MyCalendarEvent {
 
-    private long id;
-    private Calendar startTime;
-    private Calendar endTime;
+    private String startDate;
+    private String endDate;
     private String title;
-    private Calendar instanceDay;
-    private DayItem dayReference;
-    private WeekItem weekReference;
+    private String type;
+    private int id;
+    private int disciplineId;
+    private short eventType;
+    private short dateType;
 
-    @Override
-    public long getId() {
-        return id;
+
+    private final String[] EVENT_TYPE = {"Registration",
+            "Admit Card",
+            "Exam",
+            "Result"};
+
+    private final String[] DATE_TYPE = {"Expected", "Confirmed"};
+
+    public String getStartDate() {
+        return startDate;
     }
 
-    @Override
-    public void setId(long id) {
-        this.id = id;
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
     }
 
-    @Override
-    public Calendar getStartTime() {
-        return startTime;
+    public String getEndDate() {
+        return endDate;
     }
 
-    @Override
-    public void setStartTime(Calendar startTime) {
-        this.startTime = startTime;
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
     }
 
-    @Override
-    public Calendar getEndTime() {
-        return endTime;
-    }
-
-    @Override
-    public void setEndTime(Calendar endTime) {
-        this.endTime = endTime;
-    }
-
-    @Override
     public String getTitle() {
         return title;
     }
 
-    @Override
     public void setTitle(String title) {
         this.title = title;
     }
 
-    @Override
-    public Calendar getInstanceDay() {
-        return instanceDay;
+    public String getType() {
+        return type;
     }
 
-    @Override
-    public void setInstanceDay(Calendar instanceDay) {
-        this.instanceDay = instanceDay;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public DayItem getDayReference() {
-        return dayReference;
+    public int getId() {
+        return id;
     }
 
-    public void setDayReference(DayItem dayRefernce) {
-        this.dayReference = dayRefernce;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public WeekItem getWeekReference() {
-        return weekReference;
+    public int getDisciplineId() {
+        return disciplineId;
     }
 
-    public void setWeekReference(WeekItem weekRefernce) {
-        this.weekReference = weekRefernce;
+    public void setDisciplineId(int disciplineId) {
+        this.disciplineId = disciplineId;
     }
 
-    public MyCalendarEvent copy() {
-        return this;
+    public short getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(short eventType) {
+        this.eventType = eventType;
+    }
+
+    public short getDateType() {
+        return dateType;
+    }
+
+    public void setDateType(short dateType) {
+        this.dateType = dateType;
+    }
+
+    public int eventColor() {
+        // TODO: Modify this method to return the event color
+        return 0;
     }
 }
