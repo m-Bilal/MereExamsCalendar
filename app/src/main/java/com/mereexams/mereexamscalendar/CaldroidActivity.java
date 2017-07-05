@@ -47,7 +47,6 @@ public class CaldroidActivity extends AppCompatActivity {
     private final short[] DAYS_IN_MONTH_LEAP_YEAR = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     FrameLayout frameLayout;
     RecyclerView recyclerViewCalendarEvents;
-    MyRecyclerViewAdapter adapter;
     ProgressDialog dialog;
     CaldroidFragment caldroidFragment;
     TextView textViewSelectedDate;
@@ -56,7 +55,7 @@ public class CaldroidActivity extends AppCompatActivity {
 
     // A list that has the dates of all the allEvents, no filter used
     List<Date> allDates;
-    // List to have all the parsed objects returned by the server
+    // List that has all the parsed objects returned by the server
     List<ExamDate> restDateResponse;
     // HashMap to map allEvents to their dates,
     // the list(second arg) contains the allEvents associated with the date
@@ -64,11 +63,14 @@ public class CaldroidActivity extends AppCompatActivity {
 
     Date lateDateSelected;
 
+    // The current date on the calendar, not necessarily today's date
     public static Date currentDateOnCalendar;
-    public static int fragmentNumber = 1;
     public static final int MAX_PAGES_COUNT = 1000;
 
+    // the position of the current page in the view pager
     private int currentPagePosition;
+
+    // Calendar variable to move forward and backward between dates
     private Calendar currentCalender;
 
 
@@ -88,7 +90,6 @@ public class CaldroidActivity extends AppCompatActivity {
         currentDateOnCalendar = new Date(year, month, day);
 
         frameLayout = (FrameLayout) findViewById(R.id.framelayout_fragment_container);
-        recyclerViewCalendarEvents = (RecyclerView) findViewById(R.id.recyclerview_calendar_events);
         textViewSelectedDate = (TextView) findViewById(R.id.textview_selected_date);
         viewPager = (ViewPager) findViewById(R.id.view_pager);
         pagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
@@ -105,6 +106,7 @@ public class CaldroidActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
+                caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.circle), currentDateOnCalendar);
                 Log.i(TAG, "on Page selected: " + position);
                 if(position < currentPagePosition) {
                     currentCalender.set(Calendar.DAY_OF_YEAR,currentCalender.get(Calendar.DAY_OF_YEAR) - 1);
@@ -126,6 +128,11 @@ public class CaldroidActivity extends AppCompatActivity {
                 }
                 currentPagePosition = position;
 
+                caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.date_selected), currentDateOnCalendar);
+                caldroidFragment.refreshView();
+                lateDateSelected = currentDateOnCalendar;
+                textViewSelectedDate.setText(currentDateOnCalendar.toString());
+
                 // Getting the current fragment
                 FragmentStatePagerAdapter adapter = (FragmentStatePagerAdapter) viewPager.getAdapter();
                 EventsFragment fragment = (EventsFragment) adapter.instantiateItem(viewPager, currentPagePosition);
@@ -140,7 +147,6 @@ public class CaldroidActivity extends AppCompatActivity {
 
         requestInfoFromServer();
         addCalendar();
-        //datesInRange();
     }
 
     // Add the calendar fragment to the Activity with today's date as the arg
@@ -154,14 +160,11 @@ public class CaldroidActivity extends AppCompatActivity {
         // Set the year
         args.putInt(CaldroidFragment.YEAR, today.get(java.util.Calendar.YEAR));
         args.putBoolean(CaldroidFragment.SQUARE_TEXT_VIEW_CELL, false);
-        //args.putInt(CaldroidFragment.THEME_RESOURCE, com.caldroid.R.style.CaldroidDefaultDark);
         caldroidFragment.setArguments(args);
 
         caldroidFragment.setTextColorForDate(R.color.colorAccent, new Date());
         caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.date_selected), new Date());
         caldroidFragment.refreshView();
-
-        Date tomorrow = new Date(2017 - 1900, 5, 30);
 
         caldroidFragment.setCaldroidListener(new CaldroidListener() {
             @Override
@@ -172,36 +175,20 @@ public class CaldroidActivity extends AppCompatActivity {
                 }
                 caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.date_selected), date);
                 lateDateSelected = date;
+                currentDateOnCalendar = date;
+                currentCalender.setTime(date);
                 caldroidFragment.refreshView();
-                attachEvents(date);
+
+                // Getting the current fragment
+                FragmentStatePagerAdapter adapter = (FragmentStatePagerAdapter) viewPager.getAdapter();
+                EventsFragment fragment = (EventsFragment) adapter.instantiateItem(viewPager, currentPagePosition);
+                fragment.update();
             }
         });
 
         FragmentTransaction t = getSupportFragmentManager().beginTransaction();
         t.replace(R.id.framelayout_fragment_container, caldroidFragment);
         t.commit();
-    }
-
-    // Attaching events to recycler view
-    void attachEvents(Date date) {
-        // If there are events on the selected date
-        if(allEvents.get(date) != null){
-            adapter = new MyRecyclerViewAdapter(allEvents.get(date));
-
-            // Recycler view
-            RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
-            recyclerViewCalendarEvents.setLayoutManager(layoutManager);
-            recyclerViewCalendarEvents.setAdapter(adapter);
-        } else { // No events on the selected date
-            List<MyCalendarEvent> list = new ArrayList<>();
-            adapter = new MyRecyclerViewAdapter(list);
-
-            // Recycler view
-            RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
-            recyclerViewCalendarEvents.setLayoutManager(layoutManager);
-            recyclerViewCalendarEvents.setAdapter(adapter);
-        }
-
     }
 
     void requestInfoFromServer() {
@@ -309,6 +296,11 @@ public class CaldroidActivity extends AppCompatActivity {
         }
         caldroidFragment.setBackgroundDrawableForDates(createDrawables());
         caldroidFragment.refreshView();
+
+        // Getting the current fragment
+        FragmentStatePagerAdapter adapter = (FragmentStatePagerAdapter) viewPager.getAdapter();
+        EventsFragment fragment = (EventsFragment) adapter.instantiateItem(viewPager, currentPagePosition);
+        fragment.update();
     }
 
     Map<Date, Drawable> createDrawables() {
@@ -380,51 +372,6 @@ public class CaldroidActivity extends AppCompatActivity {
             }
         }
         return datesOfEvent;
-    }
-
-    // Recycler View Adapter
-    public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.MyViewHolder> {
-
-        List<MyCalendarEvent> exams;
-
-        public MyRecyclerViewAdapter(List<MyCalendarEvent> examDates) {
-            exams = examDates;
-        }
-
-        @Override
-        public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View itemView = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.recyclerview_calendar_events_layout, parent, false);
-
-            Log.d("Recycler View", "Created");
-
-            return new MyViewHolder(itemView);
-        }
-
-        @Override
-        public void onBindViewHolder(MyViewHolder holder, int position) {
-            Log.d("Recycler view", "On Bind Postion : " + position);
-            holder.title.setText(exams.get(position).getTitle());
-            holder.type.setText(exams.get(position).getEventType());
-            holder.dateType.setText(exams.get(position).getDateType());
-        }
-
-        @Override
-        public int getItemCount() {
-            Log.d("recycler view", "size : " + exams.size());
-            return exams.size();
-        }
-
-        public class MyViewHolder extends RecyclerView.ViewHolder {
-            public TextView title, type, dateType;
-
-            public MyViewHolder(View view) {
-                super(view);
-                title = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_title);
-                type = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_type);
-                dateType = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_date_type);
-            }
-        }
     }
 
     // Pager Adapter
