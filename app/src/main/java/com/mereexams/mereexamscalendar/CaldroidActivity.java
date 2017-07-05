@@ -85,6 +85,8 @@ public class CaldroidActivity extends AppCompatActivity {
         args.putInt(CaldroidFragment.MONTH, today.get(java.util.Calendar.MONTH) + 1);
         // Set the year
         args.putInt(CaldroidFragment.YEAR, today.get(java.util.Calendar.YEAR));
+        args.putBoolean(CaldroidFragment.SQUARE_TEXT_VIEW_CELL, false);
+        //args.putInt(CaldroidFragment.THEME_RESOURCE, com.caldroid.R.style.CaldroidDefaultDark);
         caldroidFragment.setArguments(args);
 
         Date tomorrow = new Date(2017 - 1900, 5, 30);
