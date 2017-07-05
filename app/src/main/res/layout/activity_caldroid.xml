@@ -8,23 +8,40 @@
     android:layout_width="match_parent"
     android:orientation="vertical">
 
-
-    <FrameLayout
-        android:id="@+id/framelayout_fragment_container"
-        android:layout_width="match_parent"
+    <android.support.v7.widget.CardView
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="#655">
-    </FrameLayout>
-
-    <TextView
-        android:id="@+id/textview_selected_date"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:textSize="15sp"
-        android:textAlignment="center"
-        android:text="Selected Date"
-        android:background="#984"/>
+        card_view:cardElevation="5dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginLeft="5dp"
+        card_view:cardCornerRadius="4dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:background="#050"/>
+            <FrameLayout
+                android:id="@+id/framelayout_fragment_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#050">
+            </FrameLayout>
+            <TextView
+                android:id="@+id/textview_selected_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:textSize="15sp"
+                android:textAlignment="center"
+                android:text="Selected Date"/>
+        </LinearLayout>
+    </android.support.v7.widget.CardView>
 
     <android.support.v4.view.ViewPager
         android:id="@+id/view_pager"

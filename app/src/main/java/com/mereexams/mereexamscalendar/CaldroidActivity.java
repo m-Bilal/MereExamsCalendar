@@ -82,7 +82,10 @@ public class CaldroidActivity extends AppCompatActivity {
         allEvents = new HashMap<>();
         lateDateSelected = null;
         currentCalender = Calendar.getInstance();
-        currentDateOnCalendar = new Date();
+        int year = currentCalender.get(Calendar.YEAR) - 1900;
+        int month = currentCalender.get(Calendar.MONTH);
+        int day = currentCalender.get(Calendar.DAY_OF_MONTH);
+        currentDateOnCalendar = new Date(year, month, day);
 
         frameLayout = (FrameLayout) findViewById(R.id.framelayout_fragment_container);
         recyclerViewCalendarEvents = (RecyclerView) findViewById(R.id.recyclerview_calendar_events);
@@ -93,7 +96,6 @@ public class CaldroidActivity extends AppCompatActivity {
         viewPager.setCurrentItem(MAX_PAGES_COUNT / 2);
         caldroidFragment = new CaldroidFragment();
 
-        viewPager.setOffscreenPageLimit(0);
         currentPagePosition = MAX_PAGES_COUNT / 2;
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -106,17 +108,25 @@ public class CaldroidActivity extends AppCompatActivity {
                 Log.i(TAG, "on Page selected: " + position);
                 if(position < currentPagePosition) {
                     currentCalender.set(Calendar.DAY_OF_YEAR,currentCalender.get(Calendar.DAY_OF_YEAR) - 1);
-                    currentDateOnCalendar = currentCalender.getTime();
+                    int year = currentCalender.get(Calendar.YEAR) - 1900;
+                    int month = currentCalender.get(Calendar.MONTH);
+                    int day = currentCalender.get(Calendar.DAY_OF_MONTH);
+                    currentDateOnCalendar = new Date(year, month, day);
                     Log.i(TAG, "mycalendar, current Time:" + currentCalender.getTime().toString());
                     Log.i(TAG, "mycalendar, Day of year: " + currentCalender.get(Calendar.DAY_OF_YEAR));
                 }
                 else {
                     currentCalender.set(Calendar.DAY_OF_YEAR,currentCalender.get(Calendar.DAY_OF_YEAR) + 1);
-                    currentDateOnCalendar = currentCalender.getTime();
+                    int year = currentCalender.get(Calendar.YEAR) - 1900;
+                    int month = currentCalender.get(Calendar.MONTH);
+                    int day = currentCalender.get(Calendar.DAY_OF_MONTH);
+                    currentDateOnCalendar = new Date(year, month, day);
                     Log.i(TAG, "mycalendar, current Time:" + currentCalender.getTime().toString());
                     Log.i(TAG, "mycalendar, Day of year: " + currentCalender.get(Calendar.DAY_OF_YEAR));
                 }
                 currentPagePosition = position;
+
+                // Getting the current fragment
                 FragmentStatePagerAdapter adapter = (FragmentStatePagerAdapter) viewPager.getAdapter();
                 EventsFragment fragment = (EventsFragment) adapter.instantiateItem(viewPager, currentPagePosition);
                 fragment.update();
