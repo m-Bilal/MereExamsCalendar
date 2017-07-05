@@ -2,8 +2,14 @@ package com.mereexams.mereexamscalendar;
 
 import android.app.ProgressDialog;
 import android.graphics.drawable.Drawable;
+import android.nfc.Tag;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +21,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.mereexams.mereexamscalendar.Fragments.EventsFragment;
 import com.mereexams.mereexamscalendar.Helpers.ApiClient;
 import com.mereexams.mereexamscalendar.Helpers.ApiInterface;
 import com.mereexams.mereexamscalendar.Models.ExamDate;
@@ -23,6 +30,7 @@ import com.roomorama.caldroid.CaldroidFragment;
 import com.roomorama.caldroid.CaldroidListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +51,8 @@ public class CaldroidActivity extends AppCompatActivity {
     ProgressDialog dialog;
     CaldroidFragment caldroidFragment;
     TextView textViewSelectedDate;
+    ViewPager viewPager;
+    PagerAdapter pagerAdapter;
 
     // A list that has the dates of all the allEvents, no filter used
     List<Date> allDates;
@@ -50,9 +60,16 @@ public class CaldroidActivity extends AppCompatActivity {
     List<ExamDate> restDateResponse;
     // HashMap to map allEvents to their dates,
     // the list(second arg) contains the allEvents associated with the date
-    HashMap<Date, List<MyCalendarEvent>> allEvents;
+    public static HashMap<Date, List<MyCalendarEvent>> allEvents;
 
     Date lateDateSelected;
+
+    public static Date currentDateOnCalendar;
+    public static int fragmentNumber = 1;
+    public static final int MAX_PAGES_COUNT = 1000;
+
+    private int currentPagePosition;
+    private Calendar currentCalender;
 
 
     @Override
@@ -64,11 +81,52 @@ public class CaldroidActivity extends AppCompatActivity {
         restDateResponse = new ArrayList<>();
         allEvents = new HashMap<>();
         lateDateSelected = null;
+        currentCalender = Calendar.getInstance();
+        currentDateOnCalendar = new Date();
 
         frameLayout = (FrameLayout) findViewById(R.id.framelayout_fragment_container);
         recyclerViewCalendarEvents = (RecyclerView) findViewById(R.id.recyclerview_calendar_events);
         textViewSelectedDate = (TextView) findViewById(R.id.textview_selected_date);
+        viewPager = (ViewPager) findViewById(R.id.view_pager);
+        pagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
+        viewPager.setAdapter(pagerAdapter);
+        viewPager.setCurrentItem(MAX_PAGES_COUNT / 2);
         caldroidFragment = new CaldroidFragment();
+
+        viewPager.setOffscreenPageLimit(0);
+        currentPagePosition = MAX_PAGES_COUNT / 2;
+
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                Log.i(TAG, "on Page selected: " + position);
+                if(position < currentPagePosition) {
+                    currentCalender.set(Calendar.DAY_OF_YEAR,currentCalender.get(Calendar.DAY_OF_YEAR) - 1);
+                    currentDateOnCalendar = currentCalender.getTime();
+                    Log.i(TAG, "mycalendar, current Time:" + currentCalender.getTime().toString());
+                    Log.i(TAG, "mycalendar, Day of year: " + currentCalender.get(Calendar.DAY_OF_YEAR));
+                }
+                else {
+                    currentCalender.set(Calendar.DAY_OF_YEAR,currentCalender.get(Calendar.DAY_OF_YEAR) + 1);
+                    currentDateOnCalendar = currentCalender.getTime();
+                    Log.i(TAG, "mycalendar, current Time:" + currentCalender.getTime().toString());
+                    Log.i(TAG, "mycalendar, Day of year: " + currentCalender.get(Calendar.DAY_OF_YEAR));
+                }
+                currentPagePosition = position;
+                FragmentStatePagerAdapter adapter = (FragmentStatePagerAdapter) viewPager.getAdapter();
+                EventsFragment fragment = (EventsFragment) adapter.instantiateItem(viewPager, currentPagePosition);
+                fragment.update();
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
 
         requestInfoFromServer();
         addCalendar();
@@ -88,6 +146,10 @@ public class CaldroidActivity extends AppCompatActivity {
         args.putBoolean(CaldroidFragment.SQUARE_TEXT_VIEW_CELL, false);
         //args.putInt(CaldroidFragment.THEME_RESOURCE, com.caldroid.R.style.CaldroidDefaultDark);
         caldroidFragment.setArguments(args);
+
+        caldroidFragment.setTextColorForDate(R.color.colorAccent, new Date());
+        caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.date_selected), new Date());
+        caldroidFragment.refreshView();
 
         Date tomorrow = new Date(2017 - 1900, 5, 30);
 
@@ -110,7 +172,9 @@ public class CaldroidActivity extends AppCompatActivity {
         t.commit();
     }
 
+    // Attaching events to recycler view
     void attachEvents(Date date) {
+        // If there are events on the selected date
         if(allEvents.get(date) != null){
             adapter = new MyRecyclerViewAdapter(allEvents.get(date));
 
@@ -118,7 +182,7 @@ public class CaldroidActivity extends AppCompatActivity {
             RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
             recyclerViewCalendarEvents.setLayoutManager(layoutManager);
             recyclerViewCalendarEvents.setAdapter(adapter);
-        } else {
+        } else { // No events on the selected date
             List<MyCalendarEvent> list = new ArrayList<>();
             adapter = new MyRecyclerViewAdapter(list);
 
@@ -299,7 +363,6 @@ public class CaldroidActivity extends AppCompatActivity {
                 short currentDay = firstDay;
                 while (currentDay <= lastDay) {
                     Date currentDate = new Date(currentYear - 1900, currentMonth, currentDay++);
-                    Log.i(TAG, "Added date: " + currentDate.toString());
                     allDates.add(currentDate);
                     datesOfEvent.add(currentDate);
                 }
@@ -351,6 +414,29 @@ public class CaldroidActivity extends AppCompatActivity {
                 type = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_type);
                 dateType = (TextView) view.findViewById(R.id.textview_recyclerview_calendar_events_date_type);
             }
+        }
+    }
+
+    // Pager Adapter
+    private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
+        public ScreenSlidePagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            EventsFragment fragment = new EventsFragment();
+            return fragment;
+        }
+
+        @Override
+        public int getCount() {
+            return MAX_PAGES_COUNT;
+        }
+
+        @Override
+        public int getItemPosition(Object object) {
+            return POSITION_NONE;
         }
     }
 }
