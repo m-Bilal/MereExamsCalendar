@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,8 +53,6 @@ public class EventsFragment extends Fragment {
     public void update() {
         hello.setText(CaldroidActivity.currentDateOnCalendar.toString());
 
-        Log.i(TAG, "Updated");
-
         // ReyclerView
         adapter = new MyRecyclerViewAdapter(CaldroidActivity.allEvents.get(CaldroidActivity.currentDateOnCalendar));
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
@@ -77,14 +74,11 @@ public class EventsFragment extends Fragment {
             View itemView = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.recyclerview_calendar_events_layout, parent, false);
 
-            Log.d("Recycler View", "Created");
-
             return new MyViewHolder(itemView);
         }
 
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
-            Log.d("Recycler view", "On Bind Postion : " + position);
             holder.title.setText(exams.get(position).getTitle());
             holder.type.setText(exams.get(position).getEventType());
             holder.dateType.setText(exams.get(position).getDateType());

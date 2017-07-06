@@ -2,7 +2,6 @@ package com.mereexams.mereexamscalendar;
 
 import android.app.ProgressDialog;
 import android.graphics.drawable.Drawable;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -11,12 +10,8 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,31 +37,25 @@ import retrofit2.Response;
 
 public class CaldroidActivity extends AppCompatActivity {
 
+    public static final int MAX_PAGES_COUNT = 1000;
     private final static String TAG = "CaldroidActivity";
+    // HashMap to map allEvents to their dates,
+    // the list(second arg) contains the allEvents associated with the date
+    public static HashMap<Date, List<MyCalendarEvent>> allEvents;
+    // The current date on the calendar, not necessarily today's date
+    public static Date currentDateOnCalendar;
     private final short[] DAYS_IN_MONTHS = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     private final short[] DAYS_IN_MONTH_LEAP_YEAR = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     FrameLayout frameLayout;
-    RecyclerView recyclerViewCalendarEvents;
     ProgressDialog dialog;
     CaldroidFragment caldroidFragment;
     TextView textViewSelectedDate;
     ViewPager viewPager;
     PagerAdapter pagerAdapter;
-
     // A list that has the dates of all the allEvents, no filter used
     List<Date> allDates;
     // List that has all the parsed objects returned by the server
     List<ExamDate> restDateResponse;
-    // HashMap to map allEvents to their dates,
-    // the list(second arg) contains the allEvents associated with the date
-    public static HashMap<Date, List<MyCalendarEvent>> allEvents;
-
-    Date lateDateSelected;
-
-    // The current date on the calendar, not necessarily today's date
-    public static Date currentDateOnCalendar;
-    public static final int MAX_PAGES_COUNT = 1000;
-
     // the position of the current page in the view pager
     private int currentPagePosition;
 
@@ -82,7 +71,6 @@ public class CaldroidActivity extends AppCompatActivity {
         allDates = new ArrayList<>();
         restDateResponse = new ArrayList<>();
         allEvents = new HashMap<>();
-        lateDateSelected = null;
         currentCalender = Calendar.getInstance();
         int year = currentCalender.get(Calendar.YEAR) - 1900;
         int month = currentCalender.get(Calendar.MONTH);
@@ -106,37 +94,32 @@ public class CaldroidActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
-                caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.circle), currentDateOnCalendar);
-                Log.i(TAG, "on Page selected: " + position);
-                if(position < currentPagePosition) {
-                    currentCalender.set(Calendar.DAY_OF_YEAR,currentCalender.get(Calendar.DAY_OF_YEAR) - 1);
-                    int year = currentCalender.get(Calendar.YEAR) - 1900;
-                    int month = currentCalender.get(Calendar.MONTH);
-                    int day = currentCalender.get(Calendar.DAY_OF_MONTH);
-                    currentDateOnCalendar = new Date(year, month, day);
-                    Log.i(TAG, "mycalendar, current Time:" + currentCalender.getTime().toString());
-                    Log.i(TAG, "mycalendar, Day of year: " + currentCalender.get(Calendar.DAY_OF_YEAR));
+                if(allEvents.containsKey(currentDateOnCalendar)) {
+                    caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.circle), currentDateOnCalendar);
+                } else {
+                    caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.date_unselected), currentDateOnCalendar);
                 }
-                else {
-                    currentCalender.set(Calendar.DAY_OF_YEAR,currentCalender.get(Calendar.DAY_OF_YEAR) + 1);
+                Log.i(TAG, "on Page selected: " + position);
+                if (position < currentPagePosition) {
+                    currentCalender.set(Calendar.DAY_OF_YEAR, currentCalender.get(Calendar.DAY_OF_YEAR) - 1);
                     int year = currentCalender.get(Calendar.YEAR) - 1900;
                     int month = currentCalender.get(Calendar.MONTH);
                     int day = currentCalender.get(Calendar.DAY_OF_MONTH);
                     currentDateOnCalendar = new Date(year, month, day);
-                    Log.i(TAG, "mycalendar, current Time:" + currentCalender.getTime().toString());
-                    Log.i(TAG, "mycalendar, Day of year: " + currentCalender.get(Calendar.DAY_OF_YEAR));
+                } else {
+                    currentCalender.set(Calendar.DAY_OF_YEAR, currentCalender.get(Calendar.DAY_OF_YEAR) + 1);
+                    int year = currentCalender.get(Calendar.YEAR) - 1900;
+                    int month = currentCalender.get(Calendar.MONTH);
+                    int day = currentCalender.get(Calendar.DAY_OF_MONTH);
+                    currentDateOnCalendar = new Date(year, month, day);
                 }
                 currentPagePosition = position;
 
                 caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.date_selected), currentDateOnCalendar);
                 caldroidFragment.refreshView();
-                lateDateSelected = currentDateOnCalendar;
                 textViewSelectedDate.setText(currentDateOnCalendar.toString());
 
-                // Getting the current fragment
-                FragmentStatePagerAdapter adapter = (FragmentStatePagerAdapter) viewPager.getAdapter();
-                EventsFragment fragment = (EventsFragment) adapter.instantiateItem(viewPager, currentPagePosition);
-                fragment.update();
+                updateCurrentFragment();
             }
 
             @Override
@@ -170,19 +153,17 @@ public class CaldroidActivity extends AppCompatActivity {
             @Override
             public void onSelectDate(Date date, View view) {
                 textViewSelectedDate.setText(date.toString());
-                if(lateDateSelected != null){
-                    caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.circle), lateDateSelected);
+                if(allEvents.containsKey(currentDateOnCalendar)) {
+                    caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.circle), currentDateOnCalendar);
+                } else {
+                    caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.date_unselected), currentDateOnCalendar);
                 }
                 caldroidFragment.setBackgroundDrawableForDate(getResources().getDrawable(R.drawable.date_selected), date);
-                lateDateSelected = date;
                 currentDateOnCalendar = date;
                 currentCalender.setTime(date);
                 caldroidFragment.refreshView();
 
-                // Getting the current fragment
-                FragmentStatePagerAdapter adapter = (FragmentStatePagerAdapter) viewPager.getAdapter();
-                EventsFragment fragment = (EventsFragment) adapter.instantiateItem(viewPager, currentPagePosition);
-                fragment.update();
+                updateCurrentFragment();
             }
         });
 
@@ -215,7 +196,7 @@ public class CaldroidActivity extends AppCompatActivity {
             public void onFailure(Call<ExamDate.ExamDatesResponse> call, Throwable t) {
                 // Log error here since request failed
                 Log.e(TAG, t.toString());
-                Toast.makeText(getApplicationContext(),"Not connected", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Not connected", Toast.LENGTH_SHORT).show();
                 dialog.hide();
             }
         });
@@ -296,16 +277,21 @@ public class CaldroidActivity extends AppCompatActivity {
         }
         caldroidFragment.setBackgroundDrawableForDates(createDrawables());
         caldroidFragment.refreshView();
+        updateCurrentFragment();
+    }
 
+    private void updateCurrentFragment() {
         // Getting the current fragment
         FragmentStatePagerAdapter adapter = (FragmentStatePagerAdapter) viewPager.getAdapter();
         EventsFragment fragment = (EventsFragment) adapter.instantiateItem(viewPager, currentPagePosition);
         fragment.update();
+
+        caldroidFragment.moveToDate(currentDateOnCalendar);
     }
 
     Map<Date, Drawable> createDrawables() {
         Map<Date, Drawable> dateDrawableMap = new HashMap<>();
-        for(Date date : allDates) {
+        for (Date date : allDates) {
             dateDrawableMap.put(date, getResources().getDrawable(R.drawable.circle));
         }
         return dateDrawableMap;
